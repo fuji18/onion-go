@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  db:
+    platform: linux/amd64
+    container_name: mysql_db
+    image: mysql:8.4.0
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-ppassword"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - data-volume:/var/lib/mysql 
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: dev
+    ports:
+      - "3306:3306"
   app:
     build: .
     container_name: onion-go
@@ -9,14 +26,11 @@ services:
     volumes:
       - ./src:/app
     tty: true
-  mysql:
-    platform: linux/amd64
-    image: mysql:8.4.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpass
-      - TZ=Asia/Tokyo
-    volumes:
-      - data-volumes:/var/lib/mysql
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
-  data-volumes:
+  data-volume:
+  
+
